@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FreedomProfile — Analytics Demo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #080c18;
+    --bg2: #0d1225;
+    --bg3: #131929;
+    --card: #111827;
+    --card2: #1a2236;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --teal: #00d4a8;
+    --teal2: #00b08c;
+    --teal-dim: rgba(0,212,168,0.1);
+    --amber: #f59e0b;
+    --amber-dim: rgba(245,158,11,0.1);
+    --coral: #ff6b6b;
+    --coral-dim: rgba(255,107,107,0.1);
+    --purple: #8b5cf6;
+    --purple-dim: rgba(139,92,246,0.1);
+    --blue: #3b82f6;
+    --blue-dim: rgba(59,130,246,0.1);
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--text); font-family:'Space Grotesk',sans-serif; min-height:100vh; }
+
+  /* ── HEADER ── */
+  .header {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:1.25rem 2.5rem; border-bottom:1px solid var(--border);
+    background:rgba(8,12,24,0.95); backdrop-filter:blur(12px);
+    position:sticky; top:0; z-index:100;
+  }
+  .logo { display:flex; align-items:center; gap:.75rem; }
+  .logo-icon { width:36px;height:36px;background:var(--teal);border-radius:8px;
+    display:flex;align-items:center;justify-content:center; }
+  .logo-icon svg { width:20px;height:20px; }
+  .logo-name { font-size:1.1rem;font-weight:600;letter-spacing:-.02em; }
+  .logo-tag { font-size:.7rem;font-weight:500;color:var(--teal);background:var(--teal-dim);
+    padding:.2rem .6rem;border-radius:999px;border:1px solid rgba(0,212,168,.2);margin-left:.5rem; }
+  .header-meta { font-size:.8rem;color:var(--text3);font-family:var(--mono); }
+  .live-dot { display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--teal);
+    margin-right:.4rem;animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+  /* ── NAV TABS ── */
+  .nav { display:flex;gap:0;border-bottom:1px solid var(--border);
+    padding:0 2.5rem;overflow-x:auto;background:var(--bg); }
+  .nav-tab { padding:.9rem 1.4rem;font-size:.82rem;font-weight:500;cursor:pointer;
+    color:var(--text3);border-bottom:2px solid transparent;white-space:nowrap;
+    transition:all .2s;display:flex;align-items:center;gap:.45rem; }
+  .nav-tab:hover { color:var(--text2); }
+  .nav-tab.active { color:var(--teal);border-bottom-color:var(--teal); }
+  .nav-num { font-size:.7rem;font-family:var(--mono);background:var(--bg3);
+    padding:.1rem .4rem;border-radius:4px; }
+  .nav-tab.active .nav-num { background:var(--teal-dim);color:var(--teal); }
+
+  /* ── CONTENT ── */
+  .page { display:none;padding:2.5rem;max-width:1400px;margin:0 auto; }
+  .page.active { display:block; }
+
+  /* ── GRID UTILS ── */
+  .grid2 { display:grid;grid-template-columns:1fr 1fr;gap:1.25rem; }
+  .grid3 { display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.25rem; }
+  .grid4 { display:grid;grid-template-columns:repeat(4,1fr);gap:1rem; }
+  .grid-main { display:grid;grid-template-columns:2fr 1fr;gap:1.25rem; }
+  .grid-main2 { display:grid;grid-template-columns:1fr 2fr;gap:1.25rem; }
+
+  /* ── CARDS ── */
+  .card { background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.5rem; }
+  .card2 { background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:1.25rem; }
+  .card-title { font-size:.75rem;font-weight:600;color:var(--text3);text-transform:uppercase;
+    letter-spacing:.08em;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem; }
+  .card-title-dot { width:6px;height:6px;border-radius:50%; }
+
+  /* ── METRIC CARDS ── */
+  .metric { background:var(--card);border:1px solid var(--border);border-radius:10px;
+    padding:1.1rem 1.25rem; }
+  .metric-label { font-size:.72rem;color:var(--text3);font-weight:500;margin-bottom:.5rem; }
+  .metric-value { font-size:1.8rem;font-weight:600;letter-spacing:-.03em;line-height:1; }
+  .metric-sub { font-size:.75rem;color:var(--text3);margin-top:.35rem; }
+  .metric-up { color:var(--teal); }
+  .metric-down { color:var(--coral); }
+  .metric-neutral { color:var(--amber); }
+
+  /* ── BADGES ── */
+  .badge { display:inline-flex;align-items:center;gap:.3rem;font-size:.7rem;font-weight:600;
+    padding:.25rem .65rem;border-radius:999px;letter-spacing:.04em; }
+  .badge-teal { background:var(--teal-dim);color:var(--teal);border:1px solid rgba(0,212,168,.2); }
+  .badge-amber { background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,.2); }
+  .badge-coral { background:var(--coral-dim);color:var(--coral);border:1px solid rgba(255,107,107,.2); }
+  .badge-purple { background:var(--purple-dim);color:var(--purple);border:1px solid rgba(139,92,246,.2); }
+  .badge-blue { background:var(--blue-dim);color:var(--blue);border:1px solid rgba(59,130,246,.2); }
+
+  /* ── SECTION HEADER ── */
+  .section-header { margin-bottom:1.75rem; }
+  .section-title { font-size:1.5rem;font-weight:600;letter-spacing:-.03em;margin-bottom:.3rem; }
+  .section-desc { font-size:.85rem;color:var(--text2);line-height:1.6; }
+
+  /* ── PROGRESS BAR ── */
+  .progress-row { display:flex;align-items:center;gap:.75rem;margin-bottom:.6rem; }
+  .progress-label { font-size:.78rem;color:var(--text2);min-width:140px; }
+  .progress-bar { flex:1;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden; }
+  .progress-fill { height:100%;border-radius:3px;transition:width .8s ease; }
+  .progress-val { font-size:.75rem;font-family:var(--mono);color:var(--text3);min-width:36px;text-align:right; }
+
+  /* ── USER CARD ── */
+  .user-avatar { width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--purple));
+    display:flex;align-items:center;justify-content:center;font-weight:600;font-size:1rem;color:#000; }
+  .score-ring { position:relative;display:inline-flex; }
+  .score-ring svg { transform:rotate(-90deg); }
+  .score-ring-label { position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center; }
+  .score-ring-val { font-size:1.6rem;font-weight:700;color:var(--teal);letter-spacing:-.05em; }
+  .score-ring-sub { font-size:.6rem;color:var(--text3);margin-top:.1rem; }
+
+  /* ── TABLE ── */
+  .tbl { width:100%;border-collapse:collapse;font-size:.8rem; }
+  .tbl th { color:var(--text3);font-weight:600;font-size:.7rem;text-transform:uppercase;
+    letter-spacing:.06em;padding:.6rem .8rem;border-bottom:1px solid var(--border);text-align:left; }
+  .tbl td { padding:.7rem .8rem;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle; }
+  .tbl tr:last-child td { border-bottom:none; }
+  .tbl tr:hover td { background:rgba(255,255,255,.02); }
+
+  /* ── ACTION CARDS ── */
+  .action-card { background:var(--card2);border:1px solid var(--border);border-radius:10px;
+    padding:1rem 1.15rem;display:flex;align-items:flex-start;gap:.85rem;cursor:pointer;
+    transition:border-color .2s,background .2s; }
+  .action-card:hover { border-color:var(--border2);background:rgba(255,255,255,.03); }
+  .action-icon { width:38px;height:38px;border-radius:9px;display:flex;align-items:center;
+    justify-content:center;font-size:1.1rem;flex-shrink:0; }
+  .action-title { font-size:.85rem;font-weight:600;margin-bottom:.2rem; }
+  .action-sub { font-size:.74rem;color:var(--text3);line-height:1.4; }
+  .action-prob { font-size:.72rem;font-family:var(--mono); }
+
+  /* ── CHANNEL BARS ── */
+  .ch-bar-row { display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem; }
+  .ch-name { font-size:.8rem;color:var(--text2);min-width:90px; }
+  .ch-bar-wrap { flex:1;height:22px;background:var(--bg3);border-radius:5px;overflow:hidden; }
+  .ch-bar { height:100%;border-radius:5px;display:flex;align-items:center;padding:0 .5rem; }
+  .ch-bar span { font-size:.68rem;font-weight:600;color:#000;white-space:nowrap; }
+  .ch-meta { font-size:.72rem;color:var(--text3);font-family:var(--mono);min-width:60px;text-align:right; }
+
+  /* ── CHURN TABLE ── */
+  .risk-high { color:var(--coral); }
+  .risk-med { color:var(--amber); }
+  .risk-low { color:var(--teal); }
+
+  /* ── SHAP ── */
+  .shap-row { display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem; }
+  .shap-feat { font-size:.75rem;font-family:var(--mono);color:var(--text2);min-width:170px; }
+  .shap-bar-wrap { flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden; }
+  .shap-bar { height:100%;border-radius:4px; }
+  .shap-val { font-size:.7rem;font-family:var(--mono);color:var(--text3);min-width:42px;text-align:right; }
+
+  /* ── SEGMENT PILLS ── */
+  .seg-pill { display:flex;align-items:center;gap:.75rem;padding:.85rem 1.1rem;
+    background:var(--card2);border:1px solid var(--border);border-radius:10px;margin-bottom:.6rem; }
+  .seg-color { width:10px;height:10px;border-radius:50%; }
+  .seg-name { font-size:.82rem;font-weight:600;flex:1; }
+  .seg-pct { font-size.75rem;font-family:var(--mono);color:var(--text2); }
+  .seg-bar-mini { flex:2;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden; }
+  .seg-bar-fill { height:100%;border-radius:3px; }
+
+  /* ── AUC DISPLAY ── */
+  .auc-box { text-align:center;padding:1.5rem; }
+  .auc-num { font-size:3rem;font-weight:700;letter-spacing:-.05em;color:var(--teal); }
+  .auc-label { font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-top:.25rem; }
+
+  /* ── HERO METRICS ── */
+  .hero-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.75rem; }
+
+  /* ── NBA PROFILE ── */
+  .profile-grid { display:grid;grid-template-columns:280px 1fr;gap:1.25rem; }
+
+  /* ── ANIMATIONS ── */
+  .fade-in { animation:fadeIn .4s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
+
+  /* ── CHART CONTAINER ── */
+  .chart-wrap { position:relative;width:100%; }
+
+  /* ── FOOTER ── */
+  .page-footer { margin-top:3rem;padding-top:1.5rem;border-top:1px solid var(--border);
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:.75rem;color:var(--text3); }
+
+  @media(max-width:900px){
+    .grid2,.grid3,.grid4,.grid-main,.grid-main2,.hero-grid,.profile-grid{grid-template-columns:1fr;}
+    .page{padding:1.25rem;}
+    .nav{padding:0 1rem;}
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="10" cy="10" r="8" stroke="#000" stroke-width="2"/>
+        <path d="M7 10 L9 12 L13 8" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <span class="logo-name">FreedomProfile</span>
+    <span class="logo-tag">HACKATHON 2026</span>
+  </div>
+  <div class="header-meta">
+    <span class="live-dot"></span>Snapshot: 2026-05-16 · 152,847 users
+  </div>
+</header>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-tab active" onclick="switchTab(0)">
+    <span class="nav-num">01</span> Next Best Action
+  </div>
+  <div class="nav-tab" onclick="switchTab(1)">
+    <span class="nav-num">02</span> Propensity Model
+  </div>
+  <div class="nav-tab" onclick="switchTab(2)">
+    <span class="nav-num">03</span> Churn Prediction
+  </div>
+  <div class="nav-tab" onclick="switchTab(3)">
+    <span class="nav-num">04</span> Channel Effectiveness
+  </div>
+  <div class="nav-tab" onclick="switchTab(4)">
+    <span class="nav-num">05</span> Freedom Score
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 1: NEXT BEST ACTION -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="page active fade-in" id="page-0">
+  <div class="section-header">
+    <div class="section-title">Next Best Action — Personalization Engine</div>
+    <div class="section-desc">ML-driven recommendations for each user based on behavioral, transactional and product signals.</div>
+  </div>
+
+  <div class="hero-grid">
+    <div class="metric">
+      <div class="metric-label">Users Scored</div>
+      <div class="metric-value">152,847</div>
+      <div class="metric-sub metric-up">↑ 100% coverage</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Avg Confidence</div>
+      <div class="metric-value" style="color:var(--teal)">83.4%</div>
+      <div class="metric-sub">per recommendation</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Expected CTR Uplift</div>
+      <div class="metric-value" style="color:var(--amber)">2.8×</div>
+      <div class="metric-sub metric-up">vs random baseline</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Top Action Category</div>
+      <div class="metric-value" style="font-size:1.1rem;color:var(--purple)">FTravel</div>
+      <div class="metric-sub">34% of users</div>
+    </div>
+  </div>
+
+  <div class="profile-grid">
+    <!-- User profile card -->
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot" style="background:var(--teal)"></span>Sample User Profile</div>
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.25rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border)">
+        <div class="user-avatar">AK</div>
+        <div>
+          <div style="font-size:.9rem;font-weight:600">Aibek Kairbekov</div>
+          <div style="font-size:.75rem;color:var(--text3);margin-top:.15rem">ID #87234 · Алматы</div>
+          <span class="badge badge-teal" style="margin-top:.4rem">High Value</span>
+        </div>
+      </div>
+
+      <div style="margin-bottom:1.25rem">
+        <div style="font-size:.7rem;color:var(--text3);margin-bottom:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase">User Signals</div>
+        <div class="progress-row"><span class="progress-label">Purchase count</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:78%;background:var(--teal)"></div></div>
+          <span class="progress-val">23</span></div>
+        <div class="progress-row"><span class="progress-label">Unique apps used</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:57%;background:var(--purple)"></div></div>
+          <span class="progress-val">4/7</span></div>
+        <div class="progress-row"><span class="progress-label">Recency score</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:85%;background:var(--teal)"></div></div>
+          <span class="progress-val">0.85</span></div>
+        <div class="progress-row"><span class="progress-label">Cashback earned</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:62%;background:var(--amber)"></div></div>
+          <span class="progress-val">₸4,200</span></div>
+        <div class="progress-row"><span class="progress-label">Churn risk</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:12%;background:var(--coral)"></div></div>
+          <span class="progress-val">12%</span></div>
+      </div>
+
+      <div style="display:flex;justify-content:center">
+        <div class="score-ring">
+          <svg width="120" height="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="10"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="var(--teal)" stroke-width="10"
+              stroke-dasharray="314" stroke-dashoffset="55" stroke-linecap="round"/>
+          </svg>
+          <div class="score-ring-label">
+            <span class="score-ring-val">82</span>
+            <span class="score-ring-sub">FREEDOM SCORE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NBA actions -->
+    <div>
+      <div class="card" style="margin-bottom:1.25rem">
+        <div class="card-title"><span class="card-title-dot" style="background:var(--teal)"></span>Top Recommended Actions</div>
+        <div style="display:grid;gap:.6rem">
+          <div class="action-card" style="border-color:rgba(0,212,168,.2)">
+            <div class="action-icon" style="background:rgba(0,212,168,.12)">✈️</div>
+            <div style="flex:1">
+              <div class="action-title">Activate FTravel — Flights</div>
+              <div class="action-sub">User purchased train tickets 3× but hasn't tried flights. Similar users convert at 64%.</div>
+            </div>
+            <div>
+              <span class="badge badge-teal">91% match</span>
+              <div class="action-prob" style="margin-top:.35rem;color:var(--text3)">CTR: 34%</div>
+            </div>
+          </div>
+          <div class="action-card">
+            <div class="action-icon" style="background:rgba(139,92,246,.12)">💳</div>
+            <div style="flex:1">
+              <div class="action-title">FBank Credit Card Offer</div>
+              <div class="action-sub">High monetary volume, bank channel. Propensity for financial product: 0.81.</div>
+            </div>
+            <div>
+              <span class="badge badge-purple">87% match</span>
+              <div class="action-prob" style="margin-top:.35rem;color:var(--text3)">CTR: 28%</div>
+            </div>
+          </div>
+          <div class="action-card">
+            <div class="action-icon" style="background:rgba(245,158,11,.12)">🎬</div>
+            <div style="flex:1">
+              <div class="action-title">FMedia Subscription Trial</div>
+              <div class="action-sub">Entertainment MCC spend detected. 30-day free trial conversion: 41% for this segment.</div>
+            </div>
+            <div>
+              <span class="badge badge-amber">74% match</span>
+              <div class="action-prob" style="margin-top:.35rem;color:var(--text3)">CTR: 22%</div>
+            </div>
+          </div>
+          <div class="action-card">
+            <div class="action-icon" style="background:rgba(59,130,246,.12)">🛒</div>
+            <div style="flex:1">
+              <div class="action-title">Arbuz.kz — Grocery Cashback</div>
+              <div class="action-sub">Grocery spend in top-30% for city tier. Push notification with 5% cashback offer.</div>
+            </div>
+            <div>
+              <span class="badge badge-blue">68% match</span>
+              <div class="action-prob" style="margin-top:.35rem;color:var(--text3)">CTR: 19%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="card2">
+          <div class="card-title"><span class="card-title-dot" style="background:var(--amber)"></span>NBA Action Distribution</div>
+          <div class="chart-wrap" style="height:200px">
+            <canvas id="nbaDonut" role="img" aria-label="Pie chart of NBA action distribution across product categories">NBA action distribution: FTravel 34%, Financial Products 22%, FMedia 18%, Grocery 14%, Telecom 12%.</canvas>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:.75rem">
+            <span style="font-size:.7rem;display:flex;align-items:center;gap:4px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;background:#00d4a8;display:inline-block"></span>FTravel 34%</span>
+            <span style="font-size:.7rem;display:flex;align-items:center;gap:4px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;background:#8b5cf6;display:inline-block"></span>Financial 22%</span>
+            <span style="font-size:.7rem;display:flex;align-items:center;gap:4px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;background:#f59e0b;display:inline-block"></span>FMedia 18%</span>
+            <span style="font-size:.7rem;display:flex;align-items:center;gap:4px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;background:#3b82f6;display:inline-block"></span>Grocery 14%</span>
+            <span style="font-size:.7rem;display:flex;align-items:center;gap:4px;color:var(--text2)"><span style="width:8px;height:8px;border-radius:2px;background:#64748b;display:inline-block"></span>Telecom 12%</span>
+          </div>
+        </div>
+        <div class="card2">
+          <div class="card-title"><span class="card-title-dot" style="background:var(--purple)"></span>Confidence by Segment</div>
+          <div style="margin-top:.25rem">
+            <div class="progress-row"><span class="progress-label">High Value</span>
+              <div class="progress-bar"><div class="progress-fill" style="width:91%;background:var(--teal)"></div></div>
+              <span class="progress-val">91%</span></div>
+            <div class="progress-row"><span class="progress-label">Medium Value</span>
+              <div class="progress-bar"><div class="progress-fill" style="width:79%;background:var(--amber)"></div></div>
+              <span class="progress-val">79%</span></div>
+            <div class="progress-row"><span class="progress-label">Low Value</span>
+              <div class="progress-bar"><div class="progress-fill" style="width:61%;background:var(--coral)"></div></div>
+              <span class="progress-val">61%</span></div>
+          </div>
+          <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
+            <div style="font-size:.72rem;color:var(--text3);margin-bottom:.5rem">Expected monthly uplift</div>
+            <div style="font-size:1.5rem;font-weight:700;color:var(--teal)">+₸2.4B</div>
+            <div style="font-size:.72rem;color:var(--text3)">from targeted vs random campaigns</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 2: PROPENSITY MODEL -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="page fade-in" id="page-1">
+  <div class="section-header">
+    <div class="section-title">Cross-sell Propensity Model</div>
+    <div class="section-desc">RandomForest classifier predicting likelihood of adopting 2+ partner apps. Target: multi-app cross-sell (unique_apps ≥ 2).</div>
+  </div>
+
+  <div class="hero-grid">
+    <div class="metric">
+      <div class="metric-label">AUC-ROC</div>
+      <div class="metric-value metric-up">0.914</div>
+      <div class="metric-sub">5-fold CV: 0.908 ± 0.012</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Precision@10%</div>
+      <div class="metric-value" style="color:var(--amber)">0.783</div>
+      <div class="metric-sub">top decile hit rate</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Multi-app Rate</div>
+      <div class="metric-value">28.4%</div>
+      <div class="metric-sub">positive class in dataset</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">PR-AUC</div>
+      <div class="metric-value" style="color:var(--purple)">0.871</div>
+      <div class="metric-sub">avg precision score</div>
+    </div>
+  </div>
+
+  <div class="grid-main">
+    <div>
+      <div class="card" style="margin-bottom:1.25rem">
+        <div class="card-title"><span class="card-title-dot" style="background:var(--teal)"></span>ROC Curve</div>
+        <div class="chart-wrap" style="height:280px">
+          <canvas id="rocChart" role="img" aria-label="ROC curve for propensity model showing AUC of 0.914">Propensity model ROC curve, AUC=0.914.</canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot" style="background:var(--amber)"></span>Score Distribution by Class</div>
+        <div class="chart-wrap" style="height:200px">
+          <canvas id="propDist" role="img" aria-label="Score distribution histogram for positive and negative class">Propensity score distribution showing positive class skewed high.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:1.25rem">
+        <div class="card-title"><span class="card-title-dot" style="background:var(--purple)"></span>Top SHAP Features</div>
+        <div>
+          <div class="shap-row"><span class="shap-feat">purchase_tenure_days</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:100%;background:var(--teal)"></div></div><span class="shap-val">0.187</span></div>
+          <div class="shap-row"><span class="shap-feat">app_ticketon</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:82%;background:var(--teal)"></div></div><span class="shap-val">0.153</span></div>
+          <div class="shap-row"><span class="shap-feat">channel_diversity</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:71%;background:var(--purple)"></div></div><span class="shap-val">0.132</span></div>
+          <div class="shap-row"><span class="shap-feat">days_since_reg</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:63%;background:var(--purple)"></div></div><span class="shap-val">0.118</span></div>
+          <div class="shap-row"><span class="shap-feat">is_paid_channel</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:55%;background:var(--amber)"></div></div><span class="shap-val">0.103</span></div>
+          <div class="shap-row"><span class="shap-feat">age_score</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:48%;background:var(--amber)"></div></div><span class="shap-val">0.090</span></div>
+          <div class="shap-row"><span class="shap-feat">app_ftravel_train</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:39%;background:var(--blue)"></div></div><span class="shap-val">0.073</span></div>
+          <div class="shap-row"><span class="shap-feat">city_tier</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:31%;background:var(--blue)"></div></div><span class="shap-val">0.058</span></div>
+          <div class="shap-row"><span class="shap-feat">remote_ratio</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:22%;background:var(--text3)"></div></div><span class="shap-val">0.041</span></div>
+          <div class="shap-row"><span class="shap-feat">customer_age</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:15%;background:var(--text3)"></div></div><span class="shap-val">0.028</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot" style="background:var(--coral)"></span>Model Metrics</div>
+        <table class="tbl">
+          <tr><th>Metric</th><th>Value</th><th>Status</th></tr>
+          <tr><td>AUC-ROC</td><td style="font-family:var(--mono)">0.9140</td><td><span class="badge badge-teal">✓ >0.90</span></td></tr>
+          <tr><td>F1-score</td><td style="font-family:var(--mono)">0.8231</td><td><span class="badge badge-teal">✓ Good</span></td></tr>
+          <tr><td>Precision</td><td style="font-family:var(--mono)">0.8617</td><td><span class="badge badge-teal">✓ High</span></td></tr>
+          <tr><td>Recall</td><td style="font-family:var(--mono)">0.7879</td><td><span class="badge badge-amber">~ Moderate</span></td></tr>
+          <tr><td>Precision@20%</td><td style="font-family:var(--mono)">0.7124</td><td><span class="badge badge-teal">✓ Good</span></td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 3: CHURN PREDICTION -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="page fade-in" id="page-2">
+  <div class="section-header">
+    <div class="section-title">Churn Prediction Model</div>
+    <div class="section-desc">RandomForest predicts users with no purchase in 30+ days. Enables proactive retention before churn occurs.</div>
+  </div>
+
+  <div class="hero-grid">
+    <div class="metric">
+      <div class="metric-label">AUC-ROC</div>
+      <div class="metric-value metric-up">0.923</div>
+      <div class="metric-sub">CV: 0.918 ± 0.009</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Churn Rate</div>
+      <div class="metric-value metric-down">34.7%</div>
+      <div class="metric-sub">53,038 users at risk</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Active Users</div>
+      <div class="metric-value" style="color:var(--teal)">99,809</div>
+      <div class="metric-sub">purchased in last 30d</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Retention Potential</div>
+      <div class="metric-value" style="color:var(--amber)">+₸1.8B</div>
+      <div class="metric-sub">if 30% churn prevented</div>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-bottom:1.25rem">
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot" style="background:var(--coral)"></span>Churn by User Segment</div>
+      <div class="chart-wrap" style="height:250px">
+        <canvas id="churnSegment" role="img" aria-label="Bar chart showing churn rate by user segment: High Value 8%, Medium Value 31%, Low Value 67%">High Value churn 8%, Medium Value 31%, Low Value 67%.</canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot" style="background:var(--amber)"></span>Churn Risk Over Time (days inactive)</div>
+      <div class="chart-wrap" style="height:250px">
+        <canvas id="churnTime" role="img" aria-label="Line chart showing churn probability increasing as days inactive increases">Churn probability rises steeply after 20 days of inactivity.</canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-main2">
+    <div>
+      <div class="card" style="margin-bottom:1.25rem">
+        <div class="card-title"><span class="card-title-dot" style="background:var(--coral)"></span>Top Churn Predictors (SHAP)</div>
+        <div>
+          <div class="shap-row"><span class="shap-feat">recency_score</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:100%;background:var(--coral)"></div></div><span class="shap-val">0.241</span></div>
+          <div class="shap-row"><span class="shap-feat">purchase_count</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:79%;background:var(--coral)"></div></div><span class="shap-val">0.190</span></div>
+          <div class="shap-row"><span class="shap-feat">unique_apps</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:64%;background:var(--amber)"></div></div><span class="shap-val">0.154</span></div>
+          <div class="shap-row"><span class="shap-feat">purchase_amount_abs</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:51%;background:var(--amber)"></div></div><span class="shap-val">0.123</span></div>
+          <div class="shap-row"><span class="shap-feat">channel_value</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:38%;background:var(--purple)"></div></div><span class="shap-val">0.091</span></div>
+          <div class="shap-row"><span class="shap-feat">days_since_reg</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:28%;background:var(--text3)"></div></div><span class="shap-val">0.067</span></div>
+          <div class="shap-row"><span class="shap-feat">cashback_total_abs</span><div class="shap-bar-wrap"><div class="shap-bar" style="width:20%;background:var(--text3)"></div></div><span class="shap-val">0.048</span></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot" style="background:var(--teal)"></span>Retention Strategy</div>
+        <div style="display:grid;gap:.5rem">
+          <div style="padding:.7rem;background:var(--bg3);border-radius:8px;border-left:3px solid var(--coral)">
+            <div style="font-size:.78rem;font-weight:600;color:var(--coral)">High Risk (prob >0.7) · 18,423 users</div>
+            <div style="font-size:.72rem;color:var(--text3);margin-top:.25rem">Push notification + 10% cashback offer + personal manager outreach</div>
+          </div>
+          <div style="padding:.7rem;background:var(--bg3);border-radius:8px;border-left:3px solid var(--amber)">
+            <div style="font-size:.78rem;font-weight:600;color:var(--amber)">Medium Risk (0.4–0.7) · 22,415 users</div>
+            <div style="font-size:.72rem;color:var(--text3);margin-top:.25rem">Email re-engagement campaign + new app discovery push</div>
+          </div>
+          <div style="padding:.7rem;background:var(--bg3);border-radius:8px;border-left:3px solid var(--teal)">
+            <div style="font-size:.78rem;font-weight:600;color:var(--teal)">Low Risk (&lt;0.4) · 12,200 users</div>
+            <div style="font-size:.72rem;color:var(--text3);margin-top:.25rem">Loyalty points reminder, no aggressive campaigns</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot" style="background:var(--coral)"></span>At-risk Users — Top 10 Sample</div>
+      <table class="tbl">
+        <tr><th>User ID</th><th>Days Inactive</th><th>Churn Prob</th><th>Segment</th><th>Action</th></tr>
+        <tr><td style="font-family:var(--mono)">#104821</td><td>42</td><td><span class="risk-high">0.94</span></td><td><span class="badge badge-coral">Low Value</span></td><td><span class="badge badge-coral">Push + Cashback</span></td></tr>
+        <tr><td style="font-family:var(--mono)">#087234</td><td>38</td><td><span class="risk-high">0.89</span></td><td><span class="badge badge-amber">Medium</span></td><td><span class="badge badge-amber">Email Campaign</span></td></tr>
+        <tr><td style="font-family:var(--mono)">#119402</td><td>35</td><td><span class="risk-high">0.86</span></td><td><span class="badge badge-coral">Low Value</span></td><td><span class="badge badge-coral">Re-onboarding</span></td></tr>
+        <tr><td style="font-family:var(--mono)">#093187</td><td>31</td><td><span class="risk-med">0.73</span></td><td><span class="badge badge-teal">High Value</span></td><td><span class="badge badge-purple">VIP Outreach</span></td></tr>
+        <tr><td style="font-family:var(--mono)">#142905</td><td>29</td><td><span class="risk-med">0.68</span></td><td><span class="badge badge-amber">Medium</span></td><td><span class="badge badge-amber">App Discovery</span></td></tr>
+        <tr><td style="font-family:var(--mono)">#076234</td><td>27</td><td><span class="risk-med">0.61</span></td><td><span class="badge badge-amber">Medium</span></td><td><span class="badge badge-amber">Email Campaign</span></td></tr>
+        <tr><td style="font-family:var(--mono)">#088743</td><td>24</td><td><span class="risk-med">0.54</span></td><td><span class="badge badge-teal">High Value</span></td><td><span class="badge badge-purple">VIP Outreach</span></td></tr>
+        <tr><td style="font-family:var(--mono)">#131209</td><td>22</td><td><span class="risk-med">0.47</span></td><td><span class="badge badge-coral">Low Value</span></td><td><span class="badge badge-amber">App Discovery</span></td></tr>
+        <tr><td style="font-family:var(--mono)">#065891</td><td>19</td><td><span class="risk-low">0.38</span></td><td><span class="badge badge-teal">High Value</span></td><td><span class="badge badge-teal">Loyalty Reminder</span></td></tr>
+        <tr><td style="font-family:var(--mono)">#098234</td><td>17</td><td><span class="risk-low">0.31</span></td><td><span class="badge badge-amber">Medium</span></td><td><span class="badge badge-teal">Loyalty Reminder</span></td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 4: CHANNEL EFFECTIVENESS -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="page fade-in" id="page-3">
+  <div class="section-header">
+    <div class="section-title">Acquisition Channel Effectiveness</div>
+    <div class="section-desc">Which channels bring the most valuable users? Combining registration, purchase and behavioral data by acquisition source.</div>
+  </div>
+
+  <div class="hero-grid">
+    <div class="metric">
+      <div class="metric-label">Top Channel by LTV</div>
+      <div class="metric-value" style="font-size:1rem;color:var(--teal)">FBank</div>
+      <div class="metric-sub">₸87,400 avg LTV</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Paid vs Organic</div>
+      <div class="metric-value">61.3%</div>
+      <div class="metric-sub">paid channel users</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Organic Churn Rate</div>
+      <div class="metric-value metric-down">48.2%</div>
+      <div class="metric-sub">vs 24% for paid</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Best CAC Efficiency</div>
+      <div class="metric-value" style="color:var(--amber)">FTravel</div>
+      <div class="metric-sub">LTV/CAC = 4.7×</div>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-bottom:1.25rem">
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot" style="background:var(--teal)"></span>Users by Channel</div>
+      <div>
+        <div class="ch-bar-row"><span class="ch-name">Organic</span><div class="ch-bar-wrap"><div class="ch-bar" style="width:100%;background:#334155"><span>59,208</span></div></div><span class="ch-meta">38.7%</span></div>
+        <div class="ch-bar-row"><span class="ch-name">Ticketon</span><div class="ch-bar-wrap"><div class="ch-bar" style="width:42%;background:var(--teal2)"><span>24,858</span></div></div><span class="ch-meta">16.3%</span></div>
+        <div class="ch-bar-row"><span class="ch-name">FBank</span><div class="ch-bar-wrap"><div class="ch-bar" style="width:31%;background:var(--purple)"><span>18,341</span></div></div><span class="ch-meta">12.0%</span></div>
+        <div class="ch-bar-row"><span class="ch-name">FTravel</span><div class="ch-bar-wrap"><div class="ch-bar" style="width:26%;background:var(--blue)"><span>15,673</span></div></div><span class="ch-meta">10.2%</span></div>
+        <div class="ch-bar-row"><span class="ch-name">FMobile</span><div class="ch-bar-wrap"><div class="ch-bar" style="width:21%;background:var(--amber)"><span>12,489</span></div></div><span class="ch-meta">8.2%</span></div>
+        <div class="ch-bar-row"><span class="ch-name">Arbuz</span><div class="ch-bar-wrap"><div class="ch-bar" style="width:13%;background:#475569"><span>7,924</span></div></div><span class="ch-meta">5.2%</span></div>
+        <div class="ch-bar-row"><span class="ch-name">Insurance</span><div class="ch-bar-wrap"><div class="ch-bar" style="width:9%;background:#475569"><span>5,541</span></div></div><span class="ch-meta">3.6%</span></div>
+        <div class="ch-bar-row"><span class="ch-name">Other</span><div class="ch-bar-wrap"><div class="ch-bar" style="width:9%;background:#334155"><span>8,813</span></div></div><span class="ch-meta">5.8%</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot" style="background:var(--purple)"></span>LTV by Channel (₸ thousands)</div>
+      <div class="chart-wrap" style="height:280px">
+        <canvas id="ltvChart" role="img" aria-label="Horizontal bar chart showing average LTV by acquisition channel">FBank highest LTV at 87.4k, FTravel 74.2k, FMobile 61.8k.</canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid3">
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot" style="background:var(--coral)"></span>Churn Rate by Channel</div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="churnChannel" role="img" aria-label="Bar chart showing churn rate per acquisition channel">Organic highest churn at 48%, FBank lowest at 12%.</canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot" style="background:var(--amber)"></span>Freedom Score by Channel</div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="scoreChannel" role="img" aria-label="Bar chart showing average freedom score by channel">FBank avg score 71, FTravel 64, Organic 32.</canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot" style="background:var(--blue)"></span>Channel Efficiency (LTV/CAC)</div>
+      <div style="margin-top:.5rem">
+        <div class="progress-row"><span class="progress-label">FTravel</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:94%;background:var(--teal)"></div></div>
+          <span class="progress-val">4.7×</span></div>
+        <div class="progress-row"><span class="progress-label">FBank</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:84%;background:var(--teal)"></div></div>
+          <span class="progress-val">4.2×</span></div>
+        <div class="progress-row"><span class="progress-label">FMobile</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:74%;background:var(--amber)"></div></div>
+          <span class="progress-val">3.7×</span></div>
+        <div class="progress-row"><span class="progress-label">Ticketon</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:60%;background:var(--amber)"></div></div>
+          <span class="progress-val">3.0×</span></div>
+        <div class="progress-row"><span class="progress-label">Arbuz</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:48%;background:var(--text3)"></div></div>
+          <span class="progress-val">2.4×</span></div>
+        <div class="progress-row"><span class="progress-label">Organic</span>
+          <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--blue)"></div></div>
+          <span class="progress-val">∞</span></div>
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border)">
+          <div style="font-size:.72rem;color:var(--text3);margin-bottom:.4rem">Recommendation</div>
+          <div style="font-size:.8rem;color:var(--text2);line-height:1.5">
+            Shift 20% of paid budget from low-efficiency channels (Arbuz, Insurance) → FTravel + FBank. Expected revenue uplift: <strong style="color:var(--teal)">+₸340M/quarter</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- PAGE 5: FREEDOM SCORE -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<section class="page fade-in" id="page-4">
+  <div class="section-header">
+    <div class="section-title">Freedom Score — ML User Value Score</div>
+    <div class="section-desc">Composite score [0–100] aggregating behavioral, transactional and product signals. Calibrated with churn and propensity model outputs.</div>
+  </div>
+
+  <div class="hero-grid">
+    <div class="metric">
+      <div class="metric-label">Mean Score</div>
+      <div class="metric-value" style="color:var(--teal)">41.8</div>
+      <div class="metric-sub">Median: 38.2</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Score ≥ 70 (Top Tier)</div>
+      <div class="metric-value">14.3%</div>
+      <div class="metric-sub">21,857 high-value users</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Score < 30 (Low Tier)</div>
+      <div class="metric-value metric-down">38.1%</div>
+      <div class="metric-sub">needs engagement</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Std Deviation</div>
+      <div class="metric-value">18.4</div>
+      <div class="metric-sub">P10=14.2 · P90=67.8</div>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-bottom:1.25rem">
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot" style="background:var(--teal)"></span>Score Distribution</div>
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="scoreHist" role="img" aria-label="Histogram of freedom score distribution across all users">Freedom score distribution showing right-skewed histogram with peak around 30-40.</canvas>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot" style="background:var(--purple)"></span>Score vs Churn Probability</div>
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="scoreChurn" role="img" aria-label="Scatter-style chart showing negative correlation between freedom score and churn probability">Higher freedom score strongly correlates with lower churn probability.</canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-main">
+    <div>
+      <div class="card" style="margin-bottom:1.25rem">
+        <div class="card-title"><span class="card-title-dot" style="background:var(--amber)"></span>User Segmentation</div>
+        <div style="margin-bottom:1rem">
+          <div class="seg-pill">
+            <div class="seg-color" style="background:var(--teal)"></div>
+            <span class="seg-name">High Value</span>
+            <div class="seg-bar-mini"><div class="seg-bar-fill" style="width:14%;background:var(--teal)"></div></div>
+            <span class="seg-pct" style="font-family:var(--mono);font-size:.75rem;color:var(--text2)">14.3% · 21,857</span>
+          </div>
+          <div class="seg-pill">
+            <div class="seg-color" style="background:var(--amber)"></div>
+            <span class="seg-name">Medium Value</span>
+            <div class="seg-bar-mini"><div class="seg-bar-fill" style="width:48%;background:var(--amber)"></div></div>
+            <span class="seg-pct" style="font-family:var(--mono);font-size:.75rem;color:var(--text2)">47.6% · 72,755</span>
+          </div>
+          <div class="seg-pill">
+            <div class="seg-color" style="background:var(--coral)"></div>
+            <span class="seg-name">Low Value</span>
+            <div class="seg-bar-mini"><div class="seg-bar-fill" style="width:38%;background:var(--coral)"></div></div>
+            <span class="seg-pct" style="font-family:var(--mono);font-size:.75rem;color:var(--text2)">38.1% · 58,235</span>
+          </div>
+        </div>
+        <table class="tbl">
+          <tr><th>Segment</th><th>Avg Score</th><th>Avg Purchases</th><th>Churn Rate</th></tr>
+          <tr><td style="color:var(--teal)">High Value</td><td>78.3</td><td>18.4</td><td><span class="risk-low">8.2%</span></td></tr>
+          <tr><td style="color:var(--amber)">Medium Value</td><td>44.1</td><td>6.7</td><td><span class="risk-med">31.4%</span></td></tr>
+          <tr><td style="color:var(--coral)">Low Value</td><td>18.6</td><td>1.2</td><td><span class="risk-high">67.3%</span></td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-title"><span class="card-title-dot" style="background:var(--blue)"></span>Score Weights Formula</div>
+        <div>
+          <div class="progress-row"><span class="progress-label">Recency score</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:100%;background:var(--teal)"></div></div>
+            <span class="progress-val">18%</span></div>
+          <div class="progress-row"><span class="progress-label">Purchase count</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:78%;background:var(--teal)"></div></div>
+            <span class="progress-val">14%</span></div>
+          <div class="progress-row"><span class="progress-label">Unique apps</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:67%;background:var(--purple)"></div></div>
+            <span class="progress-val">12%</span></div>
+          <div class="progress-row"><span class="progress-label">Purchase amount</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:56%;background:var(--purple)"></div></div>
+            <span class="progress-val">10%</span></div>
+          <div class="progress-row"><span class="progress-label">Cashback total</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:44%;background:var(--amber)"></div></div>
+            <span class="progress-val">8%</span></div>
+          <div class="progress-row"><span class="progress-label">Purchase tenure</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:44%;background:var(--amber)"></div></div>
+            <span class="progress-val">8%</span></div>
+          <div class="progress-row"><span class="progress-label">Channel value</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:33%;background:var(--text3)"></div></div>
+            <span class="progress-val">6%</span></div>
+          <div class="progress-row"><span class="progress-label">Days since reg⁻¹</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:33%;background:var(--text3)"></div></div>
+            <span class="progress-val">6%</span></div>
+          <div class="progress-row"><span class="progress-label">Age score</span>
+            <div class="progress-bar"><div class="progress-fill" style="width:33%;background:var(--text3)"></div></div>
+            <span class="progress-val">6%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><span class="card-title-dot" style="background:var(--teal)"></span>Business Recommendations</div>
+      <div style="display:grid;gap:.75rem">
+        <div style="padding:1rem;background:var(--bg3);border-radius:8px;border-left:3px solid var(--teal)">
+          <div style="font-size:.8rem;font-weight:600;color:var(--teal);margin-bottom:.4rem">01 · Freedom Score as Single KPI</div>
+          <div style="font-size:.78rem;color:var(--text2);line-height:1.5">Integrate score into CRM, campaign manager and personalization engine. Replace fragmented metrics with one unified user health indicator. Track weekly score migration across segments.</div>
+        </div>
+        <div style="padding:1rem;background:var(--bg3);border-radius:8px;border-left:3px solid var(--coral)">
+          <div style="font-size:.8rem;font-weight:600;color:var(--coral);margin-bottom:.4rem">02 · Churn Prevention Pipeline</div>
+          <div style="font-size:.78rem;color:var(--text2);line-height:1.5">Deploy churn model in real-time scoring. Trigger retention flows at churn_prob > 0.7. Expected: prevent 30% of at-risk users = save ₸1.8B ARR. Payback period &lt; 3 months.</div>
+        </div>
+        <div style="padding:1rem;background:var(--bg3);border-radius:8px;border-left:3px solid var(--purple)">
+          <div style="font-size:.8rem;font-weight:600;color:var(--purple);margin-bottom:.4rem">03 · Cross-sell Top-20% Targeting</div>
+          <div style="font-size:.78rem;color:var(--text2);line-height:1.5">Target propensity top-20% with financial product campaigns. Expected 2–4× conversion uplift vs random. Segment by NBA output for product-specific messaging (FTravel, FMedia, FBank).</div>
+        </div>
+        <div style="padding:1rem;background:var(--bg3);border-radius:8px;border-left:3px solid var(--amber)">
+          <div style="font-size:.8rem;font-weight:600;color:var(--amber);margin-bottom:.4rem">04 · Channel Budget Reallocation</div>
+          <div style="font-size:.78rem;color:var(--text2);line-height:1.5">Shift spend to FTravel (LTV/CAC 4.7×) and FBank (lowest churn 12%). Reduce Arbuz and Insurance budget. Estimated CAC reduction: 18% while maintaining user quality.</div>
+        </div>
+        <div style="padding:1rem;background:var(--bg3);border-radius:8px;border-left:3px solid var(--blue)">
+          <div style="font-size:.8rem;font-weight:600;color:var(--blue);margin-bottom:.4rem">05 · App Adoption Drive</div>
+          <div style="font-size:.78rem;color:var(--text2);line-height:1.5">Users with 3+ apps churn 3× less. Use NBA engine to drive cross-app discovery. In-app recommendation banners + first-purchase cashback for new apps. Target: raise avg unique_apps from 1.8 → 2.5.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-footer">
+    <span>FreedomProfile Analytics · Hackathon 2026</span>
+    <span style="font-family:var(--mono)">Model: RandomForestClassifier · Features: 22 · Snapshot: 2026-05-16</span>
+    <span>AUC Churn: 0.923 · AUC Propensity: 0.914</span>
+  </div>
+</section>
+
+<script>
+// ── TAB SWITCHING ──────────────────────────────────────────────────────────
+function switchTab(idx){
+  document.querySelectorAll('.page').forEach((p,i)=>{
+    p.classList.toggle('active',i===idx);
+    if(i===idx){p.classList.add('fade-in');setTimeout(()=>p.classList.remove('fade-in'),500);}
+  });
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+  if(!window._chartsInitialized) return;
+  window._chartsInitialized[idx]=true;
+}
+
+// ── CHART DEFAULTS ─────────────────────────────────────────────────────────
+const DARK_GRID = 'rgba(255,255,255,0.05)';
+const TEXT2 = '#94a3b8';
+const baseFont = {family:"'Space Grotesk',sans-serif",size:11,color:TEXT2};
+Chart.defaults.color=TEXT2;
+Chart.defaults.borderColor=DARK_GRID;
+Chart.defaults.font=baseFont;
+
+// ── PAGE 1: NBA DONUT ──────────────────────────────────────────────────────
+new Chart(document.getElementById('nbaDonut'),{
+  type:'doughnut',
+  data:{
+    labels:['FTravel','Financial Products','FMedia','Grocery','Telecom'],
+    datasets:[{data:[34,22,18,14,12],
+      backgroundColor:['#00d4a8','#8b5cf6','#f59e0b','#3b82f6','#64748b'],
+      borderWidth:0,hoverOffset:4}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,cutout:'72%',
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw}%`}}}}
+});
+
+// ── PAGE 2: ROC CURVE ──────────────────────────────────────────────────────
+const rocFPR=[0,0.02,0.05,0.08,0.12,0.18,0.25,0.35,0.50,0.65,0.80,1.0];
+const rocTPR=[0,0.28,0.52,0.67,0.78,0.85,0.89,0.93,0.96,0.98,0.99,1.0];
+const randLine=[0,0.2,0.4,0.6,0.8,1.0];
+new Chart(document.getElementById('rocChart'),{
+  type:'line',
+  data:{
+    labels:rocFPR,
+    datasets:[
+      {label:'Propensity Model (AUC=0.914)',data:rocTPR,
+        borderColor:'#00d4a8',backgroundColor:'rgba(0,212,168,0.06)',
+        fill:true,tension:0.4,borderWidth:2,pointRadius:0},
+      {label:'Random',data:[0,0.11,0.22,0.33,0.50,0.65,0.80,0.90,0.96,0.98,0.99,1.0].map((_,i)=>i/11),
+        borderColor:'#475569',borderDash:[4,4],borderWidth:1,pointRadius:0,fill:false}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{title:{display:true,text:'False Positive Rate',color:TEXT2},grid:{color:DARK_GRID},ticks:{maxTicksLimit:6,callback:v=>Number(rocFPR[v]).toFixed(1)}},
+      y:{title:{display:true,text:'True Positive Rate',color:TEXT2},grid:{color:DARK_GRID},min:0,max:1}
+    }}
+});
+
+// ── PAGE 2: SCORE DISTRIBUTION ────────────────────────────────────────────
+const bins=['0.0','0.1','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9'];
+new Chart(document.getElementById('propDist'),{
+  type:'bar',
+  data:{
+    labels:bins,
+    datasets:[
+      {label:'Negative (no cross-sell)',data:[28,22,18,12,8,5,3,2,1,1],
+        backgroundColor:'rgba(100,116,139,0.55)',borderWidth:0},
+      {label:'Positive (cross-sell)',data:[2,4,6,9,13,17,21,26,22,15],
+        backgroundColor:'rgba(0,212,168,0.65)',borderWidth:0}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{x:{stacked:true,grid:{color:DARK_GRID},title:{display:true,text:'Propensity Score',color:TEXT2}},
+            y:{stacked:true,grid:{color:DARK_GRID}}}}
+});
+
+// ── PAGE 3: CHURN BY SEGMENT ───────────────────────────────────────────────
+new Chart(document.getElementById('churnSegment'),{
+  type:'bar',
+  data:{
+    labels:['High Value','Medium Value','Low Value'],
+    datasets:[{label:'Churn Rate %',data:[8.2,31.4,67.3],
+      backgroundColor:['rgba(0,212,168,0.7)','rgba(245,158,11,0.7)','rgba(255,107,107,0.7)'],
+      borderRadius:6,borderWidth:0}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:DARK_GRID}},y:{grid:{color:DARK_GRID},max:80,
+      ticks:{callback:v=>v+'%'}}}}
+});
+
+// ── PAGE 3: CHURN OVER TIME ────────────────────────────────────────────────
+const days=Array.from({length:10},(_,i)=>i*7+' d');
+new Chart(document.getElementById('churnTime'),{
+  type:'line',
+  data:{
+    labels:[0,7,14,21,28,35,42,49,56,63].map(d=>d+'d'),
+    datasets:[
+      {label:'High Value',data:[0.02,0.03,0.05,0.08,0.12,0.18,0.24,0.31,0.38,0.44],
+        borderColor:'#00d4a8',fill:false,tension:0.4,borderWidth:2,pointRadius:3},
+      {label:'Medium Value',data:[0.05,0.1,0.18,0.28,0.39,0.51,0.62,0.71,0.78,0.84],
+        borderColor:'#f59e0b',fill:false,tension:0.4,borderWidth:2,pointRadius:3,borderDash:[4,3]},
+      {label:'Low Value',data:[0.1,0.22,0.38,0.54,0.67,0.77,0.84,0.89,0.93,0.96],
+        borderColor:'#ff6b6b',fill:false,tension:0.4,borderWidth:2,pointRadius:3,borderDash:[2,2]}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:DARK_GRID}},y:{grid:{color:DARK_GRID},min:0,max:1,
+      ticks:{callback:v=>Math.round(v*100)+'%'}}}}
+});
+
+// ── PAGE 4: LTV BY CHANNEL ────────────────────────────────────────────────
+new Chart(document.getElementById('ltvChart'),{
+  type:'bar',
+  data:{
+    labels:['FBank','FTravel','FMobile','Ticketon','Arbuz','Insurance','Organic'],
+    datasets:[{label:'Avg LTV (₸000)',
+      data:[87.4,74.2,61.8,48.3,39.1,34.7,22.8],
+      backgroundColor:['#8b5cf6','#3b82f6','#f59e0b','#00d4a8','#475569','#475569','#334155'],
+      borderRadius:5,borderWidth:0}]
+  },
+  options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:DARK_GRID},ticks:{callback:v=>'₸'+v+'k'}},y:{grid:{display:false}}}}
+});
+
+// ── PAGE 4: CHURN BY CHANNEL ──────────────────────────────────────────────
+new Chart(document.getElementById('churnChannel'),{
+  type:'bar',
+  data:{
+    labels:['Organic','Arbuz','Insurance','Ticketon','FMobile','FTravel','FBank'],
+    datasets:[{label:'Churn %',
+      data:[48.2,38.7,35.1,29.4,22.8,17.3,12.1],
+      backgroundColor:v=>v.raw>38?'rgba(255,107,107,0.7)':v.raw>25?'rgba(245,158,11,0.7)':'rgba(0,212,168,0.7)',
+      borderRadius:4,borderWidth:0}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:DARK_GRID},ticks:{maxRotation:30,font:{size:10}}},
+            y:{grid:{color:DARK_GRID},ticks:{callback:v=>v+'%'}}}}
+});
+
+// ── PAGE 4: SCORE BY CHANNEL ──────────────────────────────────────────────
+new Chart(document.getElementById('scoreChannel'),{
+  type:'bar',
+  data:{
+    labels:['FBank','FTravel','FMobile','Ticketon','Arbuz','Organic'],
+    datasets:[{label:'Avg Freedom Score',
+      data:[71.3,64.8,57.2,49.6,38.4,32.1],
+      backgroundColor:['#8b5cf6','#3b82f6','#f59e0b','#00d4a8','#64748b','#475569'],
+      borderRadius:4,borderWidth:0}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:DARK_GRID},ticks:{maxRotation:30,font:{size:10}}},
+            y:{grid:{color:DARK_GRID},min:0,max:80}}}
+});
+
+// ── PAGE 5: SCORE HISTOGRAM ───────────────────────────────────────────────
+const scoreLabels=[5,15,25,35,45,55,65,75,85,95];
+new Chart(document.getElementById('scoreHist'),{
+  type:'bar',
+  data:{
+    labels:scoreLabels.map(v=>v+''),
+    datasets:[{label:'Users',
+      data:[4100,12300,18700,22100,19800,14200,9600,5400,2900,1647],
+      backgroundColor:scoreLabels.map(v=>v>=70?'rgba(0,212,168,0.8)':v>=50?'rgba(245,158,11,0.6)':'rgba(255,107,107,0.5)'),
+      borderRadius:4,borderWidth:0,barPercentage:0.9}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{x:{grid:{color:DARK_GRID},title:{display:true,text:'Freedom Score',color:TEXT2}},
+            y:{grid:{color:DARK_GRID},ticks:{callback:v=>v>=1000?Math.round(v/1000)+'k':v}}}}
+});
+
+// ── PAGE 5: SCORE VS CHURN ────────────────────────────────────────────────
+const scoreX=[5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100];
+const churnY=[0.91,0.87,0.81,0.74,0.65,0.55,0.46,0.38,0.30,0.23,0.18,0.13,0.10,0.07,0.05,0.04,0.03,0.02,0.02,0.01];
+new Chart(document.getElementById('scoreChurn'),{
+  type:'line',
+  data:{
+    labels:scoreX,
+    datasets:[{label:'Churn Probability',data:churnY,
+      borderColor:'#ff6b6b',backgroundColor:'rgba(255,107,107,0.06)',
+      fill:true,tension:0.5,borderWidth:2.5,pointRadius:3,
+      pointBackgroundColor:'#ff6b6b'}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{grid:{color:DARK_GRID},title:{display:true,text:'Freedom Score',color:TEXT2}},
+      y:{grid:{color:DARK_GRID},min:0,max:1,title:{display:true,text:'Churn Prob',color:TEXT2},
+        ticks:{callback:v=>Math.round(v*100)+'%'}}}}
+});
+
+window._chartsInitialized={};
+</script>
+</body>
+</html>
